@@ -1,0 +1,17 @@
+---
+
+#定义三个变量组
+CONFLIST:
+- userparameter_bakFileSize.conf
+- userparameter_discovery_soft.conf
+- userparameter_get_host_info.conf
+- userparameter_get_port_by_pid.conf
+- userparameter_httpStatus.conf
+- userparameter_netstat.conf
+- userparameter_telnet_check.conf
+
+SHLIST:
+- userparameter_discovery_soft.sh
+- userparameter_get_host_info.sh
+- userparameter_soft_status.sh
+- userparameter_telnet_check.sh

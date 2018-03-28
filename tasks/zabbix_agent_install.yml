@@ -1,0 +1,47 @@
+---
+ - name: 确保目标安装目录无zabbix_agent
+   file: "path={{ dir }}/zabbix_agent state=absent"
+ 
+ - name: zabbix_agent的安装，创建安装目录，默认/appdata
+   file: "path={{ dir }} state=directory"
+
+ - name: 上传并解压zabbix_agent
+   unarchive: "src=files/zabbix_agents_3.2.7.linux2_6.amd64.tar.gz dest={{ dir }} copy=yes"
+
+ - name: 修改解压后的压缩包名
+   shell: "chdir={{ dir }} mv zabbix_agents_3.2.7.linux2_6.amd64 zabbix_agent"
+
+ - name: 增加执行权限
+   file: "path={{ dir }}/zabbix_agent/sbin/zabbix_agentd mode=777"
+
+ - name: zabbix_agentd.conf template transfer
+   template: "src=templates/zabbix_agentd.conf.j2 dest={{ dir }}/zabbix_agent/conf/zabbix_agentd.conf"
+ 
+ - name: 移动conf.j2文件替换zabbix_agent原始conf文件
+   template: "src=templates/{{ item }} dest={{ dir }}/zabbix_agent/conf/zabbix_agentd/"
+   with_items: "{{ CONFLIST }}"
+  
+ - name: 移动sh文件替换zabbix_agent原始sh文件
+   copy: "src=files/{{ item }} dest={{ dir }}/zabbix_agent/script/"
+   with_items: "{{ SHLIST }}"
+  
+ - name: 修改脚本权限
+   shell: "warn=false chmod a+x {{ dir }}/zabbix_agent/script/*.sh"
+
+ - name: 创建启动脚本
+   file: "path={{ dir }}/zabbix_agent/start_zabbix_agent.sh state=touch mode=777"
+
+ - name: 修改目录权限
+   file: path=/tmp mode=755
+
+ - name: 启动脚本模板替换
+   template: "src=templates/start_zabbix_agent.sh.j2 dest={{ dir }}/zabbix_agent/start_zabbix_agent.sh"
+
+ - name: 启动zabbix_agent
+   shell: "sh {{ dir }}/zabbix_agent/start_zabbix_agent.sh"
+
+ - name: 设置zabbix_agent开机启动
+   file: path=/etc/rc.d/rc.local mode=755
+   
+ - name: 增加开机启动项
+   shell: "echo '{{ dir }}/zabbix_agent/sbin/zabbix_agentd -c {{ dir }}/zabbix_agent/conf/zabbix_agentd.conf > /tmp/zabbix_start.log 2>&1 &' >> /etc/rc.local"
